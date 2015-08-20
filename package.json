@@ -1,0 +1,27 @@
+{
+  "name": "restpb",
+  "version": "1.0.0",
+  "description": "Simple REST API to work with phonebook db",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "restpb"
+  },
+  "author": "apg84",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "3.2.0",
+    "supertest": "1.0.1",
+    "supertest-as-promised": "2.0.2"
+  },
+  "dependencies": {
+    "express": "4.13.3",
+    "mongoose": "4.1.3"
+  }
+}
