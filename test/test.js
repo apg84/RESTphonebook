@@ -23,7 +23,7 @@ var should = require('chai').should(),
 expect = require('chai').expect,
 app = require("../server.js"),
 supertest = require('supertest-as-promised'),
-request = supertest('http://localhost:3001'),
+request = supertest(app),
 mockEntry = require('./testentries.js'),
 mongoose = require('mongoose'),
 Phonebook = mongoose.model('Entry');
@@ -66,10 +66,10 @@ removed.
 	request.get('/phonebook')
 	    .expect('Content-Type', /json/)
 	    .expect(200)
-	    .end(function(err, res) {
-		if(err) done(err);
-		done();
-	    });
+	.end(function(err, res) {
+	    if(err) done(err);
+	    else done();
+	});
     });
 
 //If we succesfully create a new entry we'll receive a 201 and the _id for the 
@@ -84,36 +84,50 @@ removed.
 	    .expect('Content-Type', /json/)
 	    .expect(201)
 	    .end(function(err, res) {
+		//expect(res.status).to.equal(201);
 		if(err) done(err);
-		var id = res.body;
-		//console.log(id);
-		request
-		    .get('/phonebook')
-		    .expect('Content-Type', /json/)
-		    .expect(200)
-		    .end(function(err, res){
-			expect(res.status).to.equal(200);
-			if(err) done(err);
-			var entries = res.body;
-			entries.forEach(function(entry){
-			    if(entry._id === id) { 
-				console.log(id);
-				console.log(entry);
-				expect(entry.name).to.equal(mockEntry.fullEntry.name);
-				expect(entry.surname).to.equal(mockEntry.fullEntry.surname);
-				expect(entry.phonenumber).to.equal(mockEntry.fullEntry.phonenumber)
-				expect(entry.address).to.equal(mockEntry.fullEntry.address);
-				done();
+		else {
+		    var id = res.body;
+		    request
+			.get('/phonebook')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function(err, res){
+			    if(err) done(err);
+			    else {
+				var entries = res.body;
+				var entryExists = false;
+				entries.forEach(function(entry){
+				    if(entry._id === id) { 
+					expect(entry.name).to.equal(mockEntry.fullEntry.name);
+					expect(entry).to.have.property('surname');
+					expect(entry.surname).to.equal(mockEntry.fullEntry.surname);
+					expect(entry).to.have.property('phonenumber');
+					expect(entry.phonenumber).to.equal(mockEntry.fullEntry.phonenumber);
+					expect(entry).to.have.property('address');
+					expect(entry.address).to.equal(mockEntry.fullEntry.address);
+					entryExists = true;
+					//done();
+				    }
+				
+				});
+				if(!entryExists) {
+				    done(new Error("Reported as created but the id returned in the response was not found in the db"));
+				} else {
+				    done();
+				}
 			    }
 			    
+			    
 			});
-						
-			
-		    });
-		
+		}
 		
 	    });
     });
+
+    //it('allows creating new entries without the optional address field', function(done) {
+//	done();
+  //  });
 
     
 });
