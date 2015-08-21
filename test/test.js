@@ -127,9 +127,9 @@ removed.
 	    });
       });
 
-    //it('allows creating new entries without the optional address field', function(done) {
-//	done();
-  //  });
+    it('allows creating new entries without the optional address field', function(done) {
+	done();
+    });
 
     it('prevents creation of entries without the required "name" field', function(done) {
 	
@@ -141,6 +141,20 @@ removed.
 	    .end(function(err, res) {
 		if(err) done(err);
 		else done();
+	    });
+
+    });
+
+    it('prevents creation of entries where name is only formed by whitespaces', function(done) {
+	
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.errWSName)
+	    .expect(400)
+	    .end(function(err, res) {
+		if(err) done(err);
+		else {console.log(res); done();}
 	    });
 
     });
@@ -157,6 +171,20 @@ removed.
 		else done();
 	    });
     });
+
+    it('prevents creation of entries where surname is only formed by whitespaces', function(done) {
+	
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.errWSName)
+	    .expect(400)
+	    .end(function(err, res) {
+		if(err) done(err);
+		else done();
+	    });
+
+    });
     
     it('prevents creation of entries without the required "phoneNumber" field', function(done) {
 	
@@ -170,6 +198,25 @@ removed.
 		else done();
 	    });
     });
+
+    it('prevents creation of entries where phonenumber is only formed by whitespaces', function(done) {
+	
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.errWSPhone)
+	    .expect(400)
+	    .end(function(err, res) {
+		if(err) done(err);
+		else done();
+	    });
+
+    });
+
+
+	
+
+    
 
     
 
