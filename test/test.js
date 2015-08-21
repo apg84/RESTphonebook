@@ -97,11 +97,12 @@ removed.
 			    else {
 				var entries = res.body;
 				var entryExists = false;
+				//var entryExists = findByField(entries, '_id', id);
 				entries.forEach(function(entry){
 				    if(entry._id === id) { 
 					expect(entry.name).to.equal(mockEntry.fullEntry.name);
 					expect(entry).to.have.property('surname');
-					expect(entry.surname).to.equal(mockEntry.fullEntry.surname);
+					expect(entry.surname).to.equal(mockEntry.fullEntry.surname);	
 					expect(entry).to.have.property('phonenumber');
 					expect(entry.phonenumber).to.equal(mockEntry.fullEntry.phonenumber);
 					expect(entry).to.have.property('address');
@@ -120,14 +121,61 @@ removed.
 			    
 			    
 			});
+		    
+		    
 		}
-		
 	    });
-    });
+      });
 
     //it('allows creating new entries without the optional address field', function(done) {
 //	done();
   //  });
 
+    it('prevents creation of entries without the required "name" field', function(done) {
+	
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.errNoName)
+	    .expect(400)
+	    .end(function(err, res) {
+		if(err) done(err);
+		else done();
+	    });
+
+    });
+
+    it('prevents creation of entries without the required "surname" field', function(done) {
+
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.errNoSurname)
+	    .expect(400)
+	    .end(function(err, res) {
+		if(err) done(err);
+		else done();
+	    });
+    });
+    
+    it('prevents creation of entries without the required "phoneNumber" field', function(done) {
+	
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.errNoPhone)
+	    .expect(400)
+	    .end(function(err, res) {
+		if(err) done(err);
+		else done();
+	    });
+    });
+
+    
+
+    
+
     
 });
+
+
