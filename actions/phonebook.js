@@ -1,6 +1,14 @@
+var mongoose = require('mongoose');
+var Phonebook = mongoose.model('Entry');
 
 //Returns all the records in the database
-exports.findAll = function() {};
+exports.findAll = function(req, res) {
+    Phonebook.find({}, function(err, results) {
+	if(err)
+	    return res.status(404).send("The request could not be satisfied");
+	return res.send(results);
+	});
+};
 
 //Returns all the matching records in the database
 exports.findBySurname = function() {};
