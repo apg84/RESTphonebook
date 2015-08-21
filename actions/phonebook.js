@@ -6,7 +6,7 @@ exports.findAll = function(req, res) {
     Phonebook.find({}, function(err, results) {
 	if(err)
 	    return res.status(404).send("The request could not be satisfied");
-	return res.send(results);
+	return res.status(200).send(results);
 	});
 };
 
@@ -14,7 +14,14 @@ exports.findAll = function(req, res) {
 exports.findBySurname = function() {};
 
 //If the request is well formed, adds a new record
-exports.add = function() {};
+exports.add = function(req, res) {
+    //console.log(req.body);
+    Phonebook.create(req.body, function(err, newEntry) {
+	if(err) return res.status(400).send("bad request");
+	return res.status(201).send(newEntry._id);
+    });
+
+};
 
 //If the request is well formed modifies a specific record
 exports.update = function() {};
