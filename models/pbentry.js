@@ -6,14 +6,17 @@ Schema = mongoose.Schema;
 //which is required and optional for it. 
 var entrySchema = new Schema({
     'name': 
-        {type: String,
-        required: true},
+    {type: String,
+     required: true,
+     trim: true},
     'surname':
-        {type: String,
-        required: true},
+    {type: String,
+     required: true,
+     trim:true},
     'phonenumber': 
-        {type: String,
-        required: true},
+    {type: String,
+     required: true,
+     trim:true},
     'address': String
 });
 
