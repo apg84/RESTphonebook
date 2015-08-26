@@ -1,3 +1,4 @@
+'use strict'
 /* Acceptance criteria:
        List all entries in the phonebook
        Create new entry into the phonebook
@@ -70,7 +71,8 @@ removed.
 		else{
 		    var entries = res.body;
 		    //Has to be uninitialised, we ensure no mock data has been left behind
-		    expect(entries.length).to.equal(0); 
+		    expect(entries).to.be.empty;
+		    done();
 		}
 	    });
     });
@@ -92,8 +94,9 @@ removed.
 	    .end(function(err, res) {
 		if(err) done(err);
 		else {
+		    //The response will be formed by the id value assigned to the entry created
 		    var id = res.body;
-		    //console.log(res);
+		    expect(id).to.exist;
 		    request
 			.get('/phonebook')
 			.expect('Content-Type', /json/)
@@ -102,34 +105,18 @@ removed.
 			    if(err) done(err);
 			    else {
 				var entries = res.body;
-				var entryExists = false;
-				//var entryExists = findByField(entries, '_id', id);
-				entries.forEach(function(entry){
-				    if(entry._id === id) { 
-					expect(entry).to.have.property('name');
-					expect(entry.name).to.equal(mockEntry.fullEntry.name);
-					
-					expect(entry).to.have.property('surname');
-					expect(entry.surname).to.equal(mockEntry.fullEntry.surname);	
-					expect(entry).to.have.property('phonenumber');
-					expect(entry.phonenumber).to.equal(mockEntry.fullEntry.phonenumber);
-					expect(entry).to.have.property('address');
-					expect(entry.address).to.equal(mockEntry.fullEntry.address);
-					entryExists = true;
-				    }
+				var entry = findById(entries, id);
+				expect(entry).not.to.equal(false);
+				expectRequiredsAsIn.call(entry, mockEntry.fullEntry);
+				expect(entry).to.have.property('address');
+				expect(entry.address).to.equal(mockEntry.fullEntry.address);
+				done();				
 				
-				});
-				if(!entryExists) {
-				    done(new Error("Reported as created but the id returned in the response was not found in the db"));
-				} else {
-				    done();
-				}
 			    }
 			    
 			    
 			});
-		    
-		    
+		    		    
 		}
 	    });
       });
@@ -145,7 +132,6 @@ removed.
 		if(err) done(err);
 		else {
 		    var id = res.body;
-		    console.log(res.body);
 		    request
 			.get('/phonebook')
 			.expect('Content-Type', /json/)
@@ -155,20 +141,10 @@ removed.
 			    else {
 				var entries = res.body;
 				var entry = findById(entries, id);
-				console.log(entry);
-				expect(entry).to.have.property('name');
-				expect(entry.name).to.equal(mockEntry.partialEntry.name);
-				expect(entry).to.have.property('surname');
-				expect(entry.surname).to.equal(mockEntry.partialEntry.surname);	
-				expect(entry).to.have.property('phonenumber');
-				expect(entry.phonenumber).to.equal(mockEntry.partialEntry.phonenumber);
-				expect(entry).to.not.have.property('address');
-				
-				if(entry === false) {
-				    done(new Error("Reported as created but the id returned in the response was not found in the db"));
-				} else {
-				    done();
-				}
+				expect(entry).to.not.equal(false);
+				expectRequiredsAsIn.call(entry, mockEntry.partialEntry);
+				expect(entry).to.not.have.property('address');		
+				done();
 			    }
 			    
 			    
@@ -186,7 +162,7 @@ removed.
 	    .post('/phonebook')
 	    .set('Accept', '/application/json')
 	    .send(mockEntry.errNoName)
-	    .expect(400)
+	    .expect(404)
 	    .end(function(err, res) {
 		if(err) done(err);
 		else done();
@@ -200,7 +176,7 @@ removed.
 	    .post('/phonebook')
 	    .set('Accept', '/application/json')
 	    .send(mockEntry.errWSName)
-	    .expect(400)
+	    .expect(404)
 	    .end(function(err, res) {
 		if(err) done(err);
 		else {done();}
@@ -214,7 +190,7 @@ removed.
 	    .post('/phonebook')
 	    .set('Accept', '/application/json')
 	    .send(mockEntry.errNoSurname)
-	    .expect(400)
+	    .expect(404)
 	    .end(function(err, res) {
 		if(err) done(err);
 		else done();
@@ -227,7 +203,7 @@ removed.
 	    .post('/phonebook')
 	    .set('Accept', '/application/json')
 	    .send(mockEntry.errWSName)
-	    .expect(400)
+	    .expect(404)
 	    .end(function(err, res) {
 		if(err) done(err);
 		else done();
@@ -241,7 +217,7 @@ removed.
 	    .post('/phonebook')
 	    .set('Accept', '/application/json')
 	    .send(mockEntry.errNoPhone)
-	    .expect(400)
+	    .expect(404)
 	    .end(function(err, res) {
 		if(err) done(err);
 		else done();
@@ -254,7 +230,7 @@ removed.
 	    .post('/phonebook')
 	    .set('Accept', '/application/json')
 	    .send(mockEntry.errWSPhone)
-	    .expect(400)
+	    .expect(404)
 	    .end(function(err, res) {
 		if(err) done(err);
 		else done();
@@ -277,28 +253,30 @@ removed.
 	    .expect(201)
 	    .end(function(err, res) {
 		if(err) done(err);
-	    });
-
-	request
-	    .get('/phonebook/'+ mockEntry.fullEntry.surname)
-	    .expect('Content-type', /json/)
-	    .expect(200)
-	    .end(function(err, res){
-		if(err) done(err);
 		else {
-		    //There will be just one entry, the one we created
-		    var entries = res.body;
-		    expect(entries.length).to.equals(1);
-		    expectRequiredsAsIn.call(entries[0], mockEntry.fullEntry);
-		    done();
+		    request
+			.get('/phonebook/'+ mockEntry.fullEntry.surname)
+			.expect('Content-type', /json/)
+			.expect(200)
+			.end(function(err, res){
+			    if(err) done(err);
+			    else {
+				//There will be just one entry, the one we created
+				var entries = res.body;
+				expect(entries.length).to.equals(1);
+				expectRequiredsAsIn.call(entries[0], mockEntry.fullEntry);
+				done();
 		    		
+			    }
+			    
+			});
+		    
 		}
 		
 	    });
-
-
+		
     });
-
+    
     it('returns an empty array if the surname does not exist in the database', function(done) {
 	
 	request
@@ -319,17 +297,200 @@ removed.
 		else {
 		    //The response must be empty (we ensure the method is not just doing a find{} and retrieving whatever was inserted)
 		    var entries = res.body;
-		    expect(entries.length).to.equals(0);
+		    expect(entries.length).to.equal(0);
 		    done();
 		    
 		}
 		
 	    });
     });
-     
+
+//Acceptance criteria: Remove an existing entry
+//Remove entry->DELETE request
+//There is no key defined, so the objects will only be available
+//to delete by providing its unique id.
+
+    it('removes an object by providing its id', function(done) {
+	
+	var id;
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.fullEntry)
+	    .expect(201)
+	    .end(function(err, res) {
+		if(err) done(err);
+		else {
+		    id = res.body;
+		    request
+			.del('/phonebook/'+ id)
+			.expect(200)
+			.end(function(err, removed) {
+			    if(err) done(err);
+			    else {
+				request
+				    .get('/phonebook/' + mockEntry.fullEntry.surname)
+				    .expect('Content-type', /json/)
+				    .expect(200)
+				    .end(function(err, res){
+					if(err) done(err);
+					else {
+					    var entries = res.body;
+					    expect(entries.length).to.be.empty;
+					    done();   
+					}
+					
+				    });
+				
+			    }
+			});
+		    
+		    
+		    
+		}
+	    });
+	
+	
+	
+	
+	
+	
+    });
+
+    
+    //Acceptance criteria: Updates an existing record
+    //Update entry->PUT request
+    //As in delete, there is no key but the _id field, 
+    //so the PUT request contains :id as a param.
+
+    it('Updates its entries', function(done) {
+	
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.fullEntry)
+	    .expect(201)
+	    .end(function(err, resPost) {
+		if(err) done(err);
+		else {
+		    var id = resPost.body;
+		    console.log(id);
+		    request
+			.put('/phonebook/' + id)
+			.set('Accept', '/application/json')
+			.send(mockEntry.updatEntry)
+			.expect(200)
+			//.expect('Content-Type', /json/)
+			.end(function(err, resPut) {
+			    if(err) done(err);
+			    else {
+				request
+				    .get('/phonebook/' + mockEntry.updatEntry.surname)
+				    .expect(200)
+				    .expect('Content-type', /json/)
+				    .end(function(err, resGet) {
+					if(err) done(err);
+					else {
+					    var entries = resGet.body;
+					    expect(entries.length).to.equal(1);
+					    expect(entries[0]._id).to.equal(id);
+					    expectRequiredsAsIn.call(entries[0], mockEntry.updatEntry);
+					    done();
+					}
+
+				    });
+				
+			
+			    }
+			});
+		}
+		
+	    });
+	
+	
+    });
+
+  /*  it('Removes unused fields when updating', function(done) {
+
+	request
+	    .post('/phonebook/')
+	    .set('Accept', '/application/json/')
+	    .send(mockEntry.fullEntry)
+	    .expect(201)
+	    .expect('Content-type', /json/)
+	    .end(function(err, res) {
+		
+		if(err) done(err);
+		else {
+		    
+		    var id = res.body;
+		    request
+			.put('/phonebook/'+id)
+			.send(mockEntry.partialEntry)
+			.expect(200)
+			.expect('Content-type', /json/)
+			.end(function(errput, resPut) {
+			    if(errput) done(errput);
+			    else {
+				console.log("<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>");
+				request
+				    .get('/phonebook/' + mockEntry.partialEntry.surname)
+				    .expect(200)
+				    .expect('Content-type', /json/)
+				    .end(function(err, resGet) {
+					if(err) done(err);
+					else {
+					    var entries = resGet.body;
+					    expect(entries.length).to.equal(1);
+					    var entry = entries[0];
+					    expect(entry._id).to.equal(id);
+					    expectRequiredsAsIn.call(entry, mockEntry.partialEntry);
+					    expect(entry).to.not.have.property('address');
+					    done();
+					}
+
+				    });
+
+			    }			    
+
+			});
+		    
+		}
+
+		
+	    });
+
+    });
+
+    it('does not update if the update request is not correct (phone)', function(done) {
+	request
+	    .post('/phonebook/')
+	    .set('Accept', '/application/json/')
+	    .send(mockEntry.fullEntry)
+	    .expect(201)
+	    .expect('Content-type', /json/)
+	    .end(function(err, res) {
+		if(err) done(err);
+		else {
+		    var id = res.body;
+		    request
+			.put('/phonebook/'+id)
+			.set('Accept', '/application/json/')
+			.send(mockEntry.errNoPhone)
+			.expect(404, done);
+		    
+		    
+		}
+		
+		
+	    });
+	
+	
+    });*/
+    
 });
-
-
+    
+    
 
 
 function findById(entries, id) {

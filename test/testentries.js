@@ -1,14 +1,22 @@
+'use strict'
 var fullEntry = {
     name: "Samuel",
     surname: "Vimes",
     phonenumber: "88888888",
     address: "The Shadows"
 },
+updatEntry = {
+    name: "Carrot",
+    surname: "Ironfounderson",
+    phonenumber: "77777777",
+    address: "Pseudopolis Yard"
+},
 partialEntry = {
     name: "Didio",
     surname: "Falco",
     phonenumber: "00000000"
 },
+
 errNoPhone = {
     name: "Sybil",
     surname: "Ramkin",
@@ -30,6 +38,7 @@ errWSSurname = {
     surname : "    ",
     phonenumber: "56785678",
 },
+
 errNoName = {
     surname: "Barnabas",
     phonenumber: "10101010" 
@@ -39,12 +48,13 @@ errWSName = {
     surname: "Barnabas",
     phonenumber: "10101010" 
 };
-
-exports.fullEntry = fullEntry;
-exports.partialEntry = partialEntry;
-exports.errNoPhone = errNoPhone;
-exports.errWSPhone = errWSPhone;
-exports.errNoSurname = errNoSurname;
-exports.errWSSurname = errWSSurname;
+module.exports = {};
+module.exports.fullEntry = fullEntry;
+module.exports.updatEntry = updatEntry;
+module.exports.partialEntry = partialEntry;
+module.exports.errNoPhone = errNoPhone;
+module.exports.errWSPhone = errWSPhone;
+module.exports.errNoSurname = errNoSurname;
+module.exports.errWSSurname = errWSSurname;
 exports.errNoName = errNoName;
 exports.errWSName = errWSName;
