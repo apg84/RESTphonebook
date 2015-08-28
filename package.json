@@ -14,14 +14,14 @@
     "url": "https://github.com/apg84/RESTphonebook"
   },
   "author": "apg84",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
-    "chai": "3.2.0",
-    "supertest": "1.0.1",
-    "supertest-as-promised": "2.0.2"
+    "chai": "^3.2.0",
+    "supertest-as-promised": "^2.0.2"
   },
   "dependencies": {
-    "express": "4.13.3",
-    "mongoose": "4.1.3"
+    "express": "^4.13.3",
+    "mongoose": "^4.1.3",
+    "body-parser": "^1.13.3"
   }
 }
