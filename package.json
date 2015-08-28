@@ -7,11 +7,11 @@
     "test": "test"
   },
   "scripts": {
+    "start": "node server.js",
     "test": "mocha ./test/test.js"
   },
   "repository": {
-    "type": "git",
-    "url": "restpb"
+    "url": "https://github.com/apg84/RESTphonebook"
   },
   "author": "apg84",
   "license": "ISC",
