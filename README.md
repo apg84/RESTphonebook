@@ -2,7 +2,7 @@
 
 ##Synopsis
 
-Simple phonebook web service which allows to store, retrieve, modify and delete entries which are formed by name, surname, phonenumber and address (being the latter the only optional field)
+Simple phonebook web service that allows to store, retrieve, modify and delete entries which are formed by name, surname, phonenumber and address (being the latter the only optional field)
 
 ##API Reference
 
@@ -33,7 +33,6 @@ In these requests *:surname* represents the surname is being looked for and *:id
 An entry comprises the fields name, surname and phonenumber (which are required) and address (which is optional).
 
 e.g.- ` {"name":"validname","surname":"validsurname","phonenumber":"88888","address":"Scoon Avenue"}`
-}
 
 
 ##Installation
