@@ -11,11 +11,11 @@ exports.findAll = function(req, res) {
     });
 };
 
-//Returns all the matching records in the database
+//Returns all the records in the database whose surname matches the requested one
 exports.findBySurname = function(req, res) {
     var surname = req.params.surname;
     Phonebook.find({'surname':surname}, function(err, results) {
-	if(err) return res.status(404).end("An error occured when trying to find by surname!");
+	if(err) return res.status(404).end("An error occurred when trying to find by surname!");
 	return res.status(200).send(results);
 	
     });
@@ -24,23 +24,31 @@ exports.findBySurname = function(req, res) {
 //If the request is well formed, adds a new record
 exports.add = function(req, res) {
     Phonebook.create(req.body, function(err, newEntry) {
-	if(err) return res.status(404).send("An error occured when trying to create an entry!");
+	if(err) return res.status(404).send("An error occurred when trying to create an entry!");
 	return res.status(201).send(newEntry._id);
     });
 
 };
 
-//If the request is well formed modifies a specific record
+//If the request is well formed modifies a specific (by _id) record
 exports.update = function(req, res) {
     var id = req.params.id;
+    var updated = req.body;
     
-    
-    Phonebook.findOneAndUpdate({'_id': id}, req.body, {'new': true}, function(err, newData) {
-	if(err) return res.status(404).send("An error occured when trying to update an entry!");
-	return res.status(200).send(newData._id);
-
+    Phonebook.findOne({'_id': id}, function(err, entry) {
+	if(err) return res.status(404).send("An error occurred when trying to modify an entry!");
+	entry.name = updated.name;
+	entry.surname = updated.surname;
+	entry.phonenumber = updated.phonenumber;
+	entry.address = updated.address;
+	entry.validate(function(err) {
+	    if(err) return res.status(400).send("The updated data cannot be validated!");
+	    entry.save(function(err) {
+		if(err) return res.status(404).send("An error occurred when trying to modify an entry!");
+		return res.status(200).send(entry._id);
+	    });
+	});
     });
-
 };
 
 //Deletes a record from the database. Since the only unique 
@@ -48,10 +56,9 @@ exports.update = function(req, res) {
 exports.delete = function(req, res) {
     var id = req.params.id;
     Phonebook.remove({'_id':id}, function(err, id) {
-	if(err) return res.status(404).send("An error occured while trying to delete an entry!");
+	if(err) return res.status(404).send("An error occurred while trying to delete an entry!");
 	return res.status(200).send(id);
     });
-
 };
 
     
