@@ -457,7 +457,7 @@ removed.
 			.put('/phonebook/' + id)
 			.set('Accept', '/application/json')
 			.send(mockEntry.errWSName)
-			.expect(404)
+			.expect(400)
 			.end(function(err, resPut) {
 			    if(err) done(err);
 			    else {
@@ -496,7 +496,7 @@ removed.
 			.put('/phonebook/' + id)
 			.set('Accept', '/application/json')
 			.send(mockEntry.errWSSurname)
-			.expect(404)
+			.expect(400)
 			.end(function(err, resPut) {
 			    if(err) done(err);
 			    else {
@@ -535,7 +535,7 @@ removed.
 			.put('/phonebook/' + id)
 			.set('Accept', '/application/json')
 			.send(mockEntry.errWSPhone)
-			.expect(404)
+			.expect(400)
 			.end(function(err, resPut) {
 			    if(err) done(err);
 			    else {
