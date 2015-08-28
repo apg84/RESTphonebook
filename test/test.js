@@ -12,9 +12,6 @@
        address (optional)
 */
 
-
-
-
 //Create new entry -> POST request
 //Find an entry by surname -> GET request
 //Remove an existing entry -> DELETE request
@@ -22,22 +19,42 @@
 
 var should = require('chai').should(),
 expect = require('chai').expect,
-app = require("../server.js"),
+app,
 supertest = require('supertest-as-promised'),
-request = supertest(app),
+request,
 mockEntry = require('./testentries.js'),
 mongoose = require('mongoose'),
-Phonebook = mongoose.model('Entry');
+Phonebook;
 
 describe('phonebook', function() {
 
 /*
+>>before
+Mocha has issues with async errors, we specifically try to catch the one thrown 
+by the soft-validation performed in the server when starting.
+
+>>beforeEach
 If the test database had been modified outside this test suite, the results
 could be compromised and certain assumptions on the contents of the database
 invalidated. So before starting the tests all the entries in the database are 
 removed. 
 
 */
+
+
+
+    before(function(done){
+	try{
+	    app = require('../server.js');
+	}
+	catch(err) {
+	    done(err);
+	}	
+	request = supertest(app);
+	Phonebook = mongoose.model('Entry');
+	done();
+    });
+
     beforeEach(function(done) {
 	request
 	.get('/phonebook')
@@ -61,6 +78,7 @@ removed.
 //List all entries -> GET request
 //The entries will be listed in json format so,
 //to start with, we are expecting a 200 response
+//and an empty json object as the body
     
     it('is reachable, speaks json', function(done) {
 	request.get('/phonebook')
@@ -107,16 +125,12 @@ removed.
 				var entries = res.body;
 				var entry = findById(entries, id);
 				expect(entry).not.to.equal(false);
-				expectRequiredsAsIn.call(entry, mockEntry.fullEntry);
+				expectRequiredsAsIn(entry, mockEntry.fullEntry);
 				expect(entry).to.have.property('address');
 				expect(entry.address).to.equal(mockEntry.fullEntry.address);
-				done();				
-				
-			    }
-			    
-			    
-			});
-		    		    
+				done();					
+			    } 
+			});	    
 		}
 	    });
       });
@@ -142,19 +156,14 @@ removed.
 				var entries = res.body;
 				var entry = findById(entries, id);
 				expect(entry).to.not.equal(false);
-				expectRequiredsAsIn.call(entry, mockEntry.partialEntry);
+				expectRequiredsAsIn(entry, mockEntry.partialEntry);
 				expect(entry).to.not.have.property('address');		
 				done();
-			    }
-			    
-			    
-			});
-		    
-		    
+			    } 
+			});	    
 		}
 	    });
       });
-
 
     it('prevents creation of entries without the required "name" field', function(done) {
 	
@@ -167,7 +176,6 @@ removed.
 		if(err) done(err);
 		else done();
 	    });
-
     });
 
     it('prevents creation of entries where name is only formed by whitespaces', function(done) {
@@ -181,7 +189,6 @@ removed.
 		if(err) done(err);
 		else {done();}
 	    });
-
     });
 
     it('prevents creation of entries without the required "surname" field', function(done) {
@@ -208,7 +215,6 @@ removed.
 		if(err) done(err);
 		else done();
 	    });
-
     });
     
     it('prevents creation of entries without the required "phoneNumber" field', function(done) {
@@ -225,7 +231,6 @@ removed.
     });
 
     it('prevents creation of entries where phonenumber is only formed by whitespaces', function(done) {
-	
 	request
 	    .post('/phonebook')
 	    .set('Accept', '/application/json')
@@ -235,7 +240,6 @@ removed.
 		if(err) done(err);
 		else done();
 	    });
-
     });
 
 //Acceptance criteria: Find an entry by surname
@@ -264,17 +268,12 @@ removed.
 				//There will be just one entry, the one we created
 				var entries = res.body;
 				expect(entries.length).to.equals(1);
-				expectRequiredsAsIn.call(entries[0], mockEntry.fullEntry);
-				done();
-		    		
-			    }
-			    
-			});
-		    
-		}
-		
+				expectRequiredsAsIn(entries[0], mockEntry.fullEntry);
+				done();	
+			    } 
+			});   
+		}	
 	    });
-		
     });
     
     it('returns an empty array if the surname does not exist in the database', function(done) {
@@ -298,10 +297,8 @@ removed.
 		    //The response must be empty (we ensure the method is not just doing a find{} and retrieving whatever was inserted)
 		    var entries = res.body;
 		    expect(entries.length).to.equal(0);
-		    done();
-		    
+		    done();   
 		}
-		
 	    });
     });
 
@@ -338,23 +335,12 @@ removed.
 					    var entries = res.body;
 					    expect(entries.length).to.be.empty;
 					    done();   
-					}
-					
-				    });
-				
+					}	
+				    });	
 			    }
-			});
-		    
-		    
-		    
+			});	    
 		}
 	    });
-	
-	
-	
-	
-	
-	
     });
 
     
@@ -362,8 +348,13 @@ removed.
     //Update entry->PUT request
     //As in delete, there is no key but the _id field, 
     //so the PUT request contains :id as a param.
+    //>>>>>>>>>>>>>>>>>>>>UPDATE TESTS<<<<<<<<<<<<<<<<<<<<
+    //Test whether an update was successfully performed
+    //Test the address field can be reset on update
+    //Test the required fields (name, surname and phonenumber) are validated as in creation
+    //to keep the db records valid as specified.
 
-    it('Updates its entries', function(done) {
+    it('updates its entries', function(done) {
 	
 	request
 	    .post('/phonebook')
@@ -374,13 +365,12 @@ removed.
 		if(err) done(err);
 		else {
 		    var id = resPost.body;
-		    console.log(id);
 		    request
 			.put('/phonebook/' + id)
 			.set('Accept', '/application/json')
 			.send(mockEntry.updatEntry)
 			.expect(200)
-			//.expect('Content-Type', /json/)
+			.expect('Content-Type', /json/)
 			.end(function(err, resPut) {
 			    if(err) done(err);
 			    else {
@@ -390,51 +380,89 @@ removed.
 				    .expect('Content-type', /json/)
 				    .end(function(err, resGet) {
 					if(err) done(err);
-					else {
+					else { 
 					    var entries = resGet.body;
 					    expect(entries.length).to.equal(1);
 					    expect(entries[0]._id).to.equal(id);
-					    expectRequiredsAsIn.call(entries[0], mockEntry.updatEntry);
+					    expectRequiredsAsIn(entries[0], mockEntry.updatEntry);
+					    expect(entries[0].address).to.equal(mockEntry.updatEntry.address);
 					    done();
 					}
-
-				    });
-				
-			
+				    });		
 			    }
 			});
-		}
-		
+		}	
 	    });
-	
-	
     });
 
-  /*  it('Removes unused fields when updating', function(done) {
+    //Since the address field is not required it should be possible to reset it on update
 
+    it('allows resetting the address field when updating', function(done) {
+	
 	request
-	    .post('/phonebook/')
-	    .set('Accept', '/application/json/')
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
 	    .send(mockEntry.fullEntry)
 	    .expect(201)
-	    .expect('Content-type', /json/)
-	    .end(function(err, res) {
-		
+	    .end(function(err, resPost) {
 		if(err) done(err);
 		else {
-		    
-		    var id = res.body;
+		    var id = resPost.body;
 		    request
-			.put('/phonebook/'+id)
+			.put('/phonebook/' + id)
+			.set('Accept', '/application/json')
 			.send(mockEntry.partialEntry)
 			.expect(200)
-			.expect('Content-type', /json/)
-			.end(function(errput, resPut) {
-			    if(errput) done(errput);
+			.expect('Content-Type', /json/)
+			.end(function(err, resPut) {
+			    if(err) done(err);
 			    else {
-				console.log("<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>");
 				request
 				    .get('/phonebook/' + mockEntry.partialEntry.surname)
+				    .expect(200)
+				    .expect('Content-type', /json/)
+				    .end(function(err, resGet) {
+					if(err) done(err);
+					else { 
+					    var entries = resGet.body;
+					    expect(entries.length).to.equal(1);
+					    expect(entries[0]._id).to.equal(id);
+					    expectRequiredsAsIn(entries[0], mockEntry.partialEntry);
+					    expect(entries[0]).to.not.have.property('address');
+					    done();
+					}
+				    });	
+			    }
+			});
+		}	
+	    });
+    });
+    
+
+    //To keep entries coherent we ensure data cannot be sneakily removed by updating to 
+    //whitespace-only required fields.
+    
+    it('does not allow whitespaces on "name" when updating', function(done) {
+	
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.fullEntry)
+	    .expect(201)
+	    .end(function(err, resPost) {
+		if(err) done(err);
+		else {
+		    var id = resPost.body;
+		    request
+			.put('/phonebook/' + id)
+			.set('Accept', '/application/json')
+			.send(mockEntry.errWSName)
+			.expect(404)
+			.end(function(err, resPut) {
+			    if(err) done(err);
+			    else {
+				request
+				    .get('/phonebook/' + mockEntry.fullEntry.surname)
 				    .expect(200)
 				    .expect('Content-type', /json/)
 				    .end(function(err, resGet) {
@@ -442,52 +470,94 @@ removed.
 					else {
 					    var entries = resGet.body;
 					    expect(entries.length).to.equal(1);
-					    var entry = entries[0];
-					    expect(entry._id).to.equal(id);
-					    expectRequiredsAsIn.call(entry, mockEntry.partialEntry);
-					    expect(entry).to.not.have.property('address');
+					    expect(entries[0]._id).to.equal(id);
+					    expectRequiredsAsIn(entries[0], mockEntry.fullEntry);
 					    done();
 					}
-
-				    });
-
-			    }			    
-
+				    });		
+			    }
 			});
-		    
-		}
-
-		
-	    });
-
+		}	
+	    });	
     });
 
-    it('does not update if the update request is not correct (phone)', function(done) {
+    it('does not allow whitespaces on "surname" when updating', function(done) {
+	
 	request
-	    .post('/phonebook/')
-	    .set('Accept', '/application/json/')
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
 	    .send(mockEntry.fullEntry)
 	    .expect(201)
-	    .expect('Content-type', /json/)
-	    .end(function(err, res) {
+	    .end(function(err, resPost) {
 		if(err) done(err);
 		else {
-		    var id = res.body;
+		    var id = resPost.body;
 		    request
-			.put('/phonebook/'+id)
-			.set('Accept', '/application/json/')
-			.send(mockEntry.errNoPhone)
-			.expect(404, done);
-		    
-		    
-		}
-		
-		
-	    });
+			.put('/phonebook/' + id)
+			.set('Accept', '/application/json')
+			.send(mockEntry.errWSSurname)
+			.expect(404)
+			.end(function(err, resPut) {
+			    if(err) done(err);
+			    else {
+				request
+				    .get('/phonebook/' + mockEntry.fullEntry.surname)
+				    .expect(200)
+				    .expect('Content-type', /json/)
+				    .end(function(err, resGet) {
+					if(err) done(err);
+					else {
+					    var entries = resGet.body;
+					    expect(entries.length).to.equal(1);
+					    expect(entries[0]._id).to.equal(id);
+					    expectRequiredsAsIn(entries[0], mockEntry.fullEntry);
+					    done();
+					}
+				    });		
+			    }
+			});
+		}	
+	    });	
+    });
+
+    it('does not allow whitespaces on "phonenumber" when updating', function(done) {
 	
-	
-    });*/
-    
+	request
+	    .post('/phonebook')
+	    .set('Accept', '/application/json')
+	    .send(mockEntry.fullEntry)
+	    .expect(201)
+	    .end(function(err, resPost) {
+		if(err) done(err);
+		else {
+		    var id = resPost.body;
+		    request
+			.put('/phonebook/' + id)
+			.set('Accept', '/application/json')
+			.send(mockEntry.errWSPhone)
+			.expect(404)
+			.end(function(err, resPut) {
+			    if(err) done(err);
+			    else {
+				request
+				    .get('/phonebook/' + mockEntry.fullEntry.surname)
+				    .expect(200)
+				    .expect('Content-type', /json/)
+				    .end(function(err, resGet) {
+					if(err) done(err);
+					else {
+					    var entries = resGet.body;
+					    expect(entries.length).to.equal(1);
+					    expect(entries[0]._id).to.equal(id);
+					    expectRequiredsAsIn(entries[0], mockEntry.fullEntry);
+					    done();
+					}
+				    });
+			    }
+			});
+		}	
+	    });	
+    });    
 });
     
     
@@ -498,19 +568,18 @@ function findById(entries, id) {
     entries.forEach(function(entry) {
 	if(entry._id === id) {
 	    entryFound = entry;
-	    //console.log(entryFound);
 	}
     });
-    //console.log(entryFound);
+    
     return entryFound;
 }
 
-var expectRequiredsAsIn = function(entry){
-    expect(this).to.have.property('name');
-    expect(this.name).to.equal(entry.name);
-    expect(this).to.have.property('surname');
-    expect(this.surname).to.equal(entry.surname);	
-    expect(this).to.have.property('phonenumber');
-    expect(this.phonenumber).to.equal(entry.phonenumber);
+function expectRequiredsAsIn(entry, pattern){
+    expect(entry).to.have.property('name');
+    expect(entry.name).to.equal(pattern.name);
+    expect(entry).to.have.property('surname');
+    expect(entry.surname).to.equal(pattern.surname);	
+    expect(entry).to.have.property('phonenumber');
+    expect(entry.phonenumber).to.equal(pattern.phonenumber);
 }
 
