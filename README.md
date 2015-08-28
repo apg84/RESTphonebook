@@ -45,6 +45,8 @@ Install all the prerequisites:
 * mocha v2.2.5
 * mongodb v3.0.x
 
+Mongo has to be started prior to running the server. After installing it, simply execute **`>mongod --dbpath pathToDataDir`** 
+
 ###Installing the REST phonebook
 
 1. From the command line: **`>git clone https://github.com/apg84/RESTphonebook`**
