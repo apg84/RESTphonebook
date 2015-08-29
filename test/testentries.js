@@ -56,5 +56,5 @@ module.exports.errNoPhone = errNoPhone;
 module.exports.errWSPhone = errWSPhone;
 module.exports.errNoSurname = errNoSurname;
 module.exports.errWSSurname = errWSSurname;
-exports.errNoName = errNoName;
-exports.errWSName = errWSName;
+module.exports.errNoName = errNoName;
+module.exports.errWSName = errWSName;
